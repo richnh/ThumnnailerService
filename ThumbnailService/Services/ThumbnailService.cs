@@ -8,7 +8,7 @@ using ThumbnailService.Models;
 
 namespace ThumbnailService.Services
 {
-    interface IThumbnailService
+    public interface IThumbnailService
     {
         bool GenerateThumbnail(GenerateThumbnailRequest request);
     }
