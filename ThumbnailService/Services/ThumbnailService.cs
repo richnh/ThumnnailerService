@@ -17,34 +17,31 @@ namespace ThumbnailService.Services
     {
         public bool GenerateThumbnail(GenerateThumbnailRequest request)
         {
-            int thumbnailWidth    = request.ThumbnailWidth;
-            int thumbnailHeight   = request.ThumbnailHeight;
-            int masterFileWidth   = request.MasterFileWidth;
-            int masterFileHeight  = request.MasterFileHeight;
             var masterFilePath    = request.MasterFilePath;
             var thumbNailFilePath = request.ThumbnailFilePath;
 
-            double ratioX = (double)thumbnailWidth / (double)masterFileWidth;
-            double ratioY = (double)thumbnailHeight / (double)masterFileHeight;
-
-            double ratio = ImageHelpers.CalculateRatioResizingOfImage(request);
-          
-            int thumbnailCalculatedHeight = Convert.ToInt32(masterFileHeight * ratio);
-            int thumbnailCalculatedWidth = Convert.ToInt32(masterFileWidth * ratio);
-
-            using (FileStream pngStream = new FileStream(masterFilePath, FileMode.Open, FileAccess.Read))
-
-            using (var image = new Bitmap(pngStream))
+            using (FileStream pngStream = new FileStream(request.MasterFilePath, FileMode.Open, FileAccess.Read))
             {
-                var thumbNailImage = new Bitmap(thumbnailCalculatedWidth, thumbnailCalculatedHeight);
-
-                using (var graphics = Graphics.FromImage(thumbNailImage))
+                using (var image = new Bitmap(pngStream))
                 {
-                    graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    graphics.CompositingMode = CompositingMode.SourceCopy;
-                    graphics.DrawImage(image, 0, 0, thumbnailCalculatedWidth, thumbnailCalculatedHeight);
-                    thumbNailImage.Save(thumbNailFilePath, ImageFormat.Png);
+                    request.MasterFileWidth = image.Width;
+                    request.MasterFileHeight = image.Height;
+
+                    double ratio = ImageHelpers.CalculateRatioResizingOfImage(request);
+
+                    int thumbnailCalculatedHeight = Convert.ToInt32(image.Height * ratio);
+                    int thumbnailCalculatedWidth = Convert.ToInt32(image.Width * ratio);
+
+                    var thumbNailImage = new Bitmap(thumbnailCalculatedWidth, thumbnailCalculatedHeight);
+
+                    using (var graphics = Graphics.FromImage(thumbNailImage))
+                    {
+                        graphics.CompositingQuality = CompositingQuality.HighSpeed;
+                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        graphics.CompositingMode = CompositingMode.SourceCopy;
+                        graphics.DrawImage(image, 0, 0, thumbnailCalculatedWidth, thumbnailCalculatedHeight);
+                        thumbNailImage.Save(request.ThumbnailFilePath);
+                    }
                 }
             }
 
